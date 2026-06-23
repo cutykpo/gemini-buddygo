@@ -1,2 +1,2 @@
 # gemini-buddygo
-like pokemon go for metabolic dissease 
+AI health coach with accountability buddy and gamified city map 
