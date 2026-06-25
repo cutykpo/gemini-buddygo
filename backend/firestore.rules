@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Usuario solo puede leer y escribir su propio documento
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Check-ins: solo el propio usuario
+    match /checkins/{checkinId} {
+      allow read, write: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null &&
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Badges: solo lectura propia
+    match /badges/{badgeId} {
+      allow read: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+      allow write: if false; // solo Cloud Functions
+    }
+
+    // Points log: solo lectura propia
+    match /points_log/{logId} {
+      allow read: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+      allow write: if false; // solo Cloud Functions
+    }
+
+    // Missions: lectura propia, escritura solo Cloud Functions
+    match /missions/{missionId} {
+      allow read: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+      allow write: if false;
+    }
+
+    // Interventions: solo Cloud Functions
+    match /interventions/{interventionId} {
+      allow read, write: if false;
+    }
+
+    // Teams: ambos buddies pueden leer
+    match /teams/{teamId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.user1Id ||
+         request.auth.uid == resource.data.user2Id);
+      allow write: if false; // solo Cloud Functions
+    }
+
+    // Buddy profiles: visibilidad limitada
+    match /buddy_profiles/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        request.auth.uid == userId;
+    }
+  }
+}
